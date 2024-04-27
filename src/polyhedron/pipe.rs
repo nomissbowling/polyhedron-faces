@@ -18,7 +18,12 @@ pub struct Tube<F: Float> {
 /// Tube TODO: dummy
 impl<F: Float + std::fmt::Debug> Tube<F> {
   /// construct
-  pub fn new(r: F) -> Self {
+  /// - odm: outer diameter
+  /// - idm: inner diameter
+  /// - l: length
+  /// - q: quality
+  pub fn new(odm: F, idm: F, l: F, q: F) -> Self {
+    let r = odm + idm + l + q; // TODO: dummy
     let vtx = vec![
       [0.5577, -0.1494, -0.2041], // (r6+3r2)/12, (r6-3r2)/12, -r6/12
       [-0.1494, 0.5577, -0.2041], // (r6-3r2)/12, (r6+3r2)/12, -r6/12
@@ -52,7 +57,13 @@ pub struct HalfPipe<F: Float> {
 /// HalfPipe TODO: dummy
 impl<F: Float + std::fmt::Debug> HalfPipe<F> {
   /// construct
-  pub fn new(r: F) -> Self {
+  /// - a: arc angle
+  /// - odm: outer diameter
+  /// - idm: inner diameter
+  /// - l: length
+  /// - q: quality
+  pub fn new(a: F, odm: F, idm: F, l: F, q: F) -> Self {
+    let r = a + odm + idm + l + q; // TODO: dummy
     let vtx = vec![
       [0.5577, -0.1494, -0.2041], // (r6+3r2)/12, (r6-3r2)/12, -r6/12
       [-0.1494, 0.5577, -0.2041], // (r6-3r2)/12, (r6+3r2)/12, -r6/12
