@@ -22,8 +22,8 @@ impl<F: Float + std::fmt::Debug> Tube<F> {
   /// - idm: inner diameter
   /// - l: length
   /// - q: quality
-  pub fn new(odm: F, idm: F, l: F, q: F) -> Self {
-    let r = odm + idm + l + q; // TODO: dummy
+  pub fn new(odm: F, idm: F, l: F, q: u8) -> Self {
+    let r = odm + idm + l + <F>::from(q).unwrap(); // TODO: dummy
     let vtx = vec![
       [0.5577, -0.1494, -0.2041], // (r6+3r2)/12, (r6-3r2)/12, -r6/12
       [-0.1494, 0.5577, -0.2041], // (r6-3r2)/12, (r6+3r2)/12, -r6/12
@@ -62,8 +62,8 @@ impl<F: Float + std::fmt::Debug> HalfPipe<F> {
   /// - idm: inner diameter
   /// - l: length
   /// - q: quality
-  pub fn new(a: F, odm: F, idm: F, l: F, q: F) -> Self {
-    let r = a + odm + idm + l + q; // TODO: dummy
+  pub fn new(a: F, odm: F, idm: F, l: F, q: u8) -> Self {
+    let r = a + odm + idm + l + <F>::from(q).unwrap(); // TODO: dummy
     let vtx = vec![
       [0.5577, -0.1494, -0.2041], // (r6+3r2)/12, (r6-3r2)/12, -r6/12
       [-0.1494, 0.5577, -0.2041], // (r6-3r2)/12, (r6+3r2)/12, -r6/12
