@@ -1,0 +1,24 @@
+[package]
+name = "polyhedron-faces"
+version = "0.0.1" # change with html_root_url in lib.rs
+edition = "2021"
+authors = ["nomissbowling <nomissbowling@yahoo.co.jp>"]
+
+description = "polyhedron faces for Rust"
+keywords = ["kinetics", "dynamics", "3d", "physics", "polyhedron"]
+categories = ["simulation", "rendering", "science", "mathematics"]
+license = "MIT"
+
+documentation = "https://docs.rs/polyhedron-faces/"
+homepage = "https://crates.io/crates/polyhedron-faces"
+repository = "https://github.com/nomissbowling/polyhedron-faces"
+
+readme = "README.md"
+
+#build = "build.rs"
+
+[lib]
+name = "ph_faces"
+
+[dependencies]
+num = { version = "0.4" } # "0.4.1"

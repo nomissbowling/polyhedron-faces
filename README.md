@@ -11,7 +11,8 @@ Links
 - [https://github.com/nomissbowling/polyhedron-faces](https://github.com/nomissbowling/polyhedron-faces)
 
 
-see also
+See also
+--------
 
 - [https://crates.io/crates/Fullerene](https://crates.io/crates/Fullerene)
 - [https://github.com/nomissbowling/Fullerene](https://github.com/nomissbowling/Fullerene)
