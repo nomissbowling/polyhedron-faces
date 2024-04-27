@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.1.2")]
+#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.2.1")]
 //! polyhedron faces for Rust
 //!
 

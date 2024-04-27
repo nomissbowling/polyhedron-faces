@@ -35,6 +35,6 @@ impl<F: Float + std::fmt::Debug> Tetra<F> {
       vec![[2, 0, 1]]
     ];
     let edges = vec![];
-    Tetra{ph: Polyhedron{vtx, tri}, edges}
+    Tetra{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
   }
 }

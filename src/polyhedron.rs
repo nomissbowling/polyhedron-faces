@@ -34,8 +34,10 @@ pub trait TUV<F: Float> {
   fn ref_vtx(&self) -> &Vec<[F; 3]>;
   /// ref tri
   fn ref_tri(&self) -> &Vec<Vec<[u8; 3]>>;
+  /// centered
+  fn centered(&self) -> bool;
   /// with_uv
-  fn with_uv(&self, tf: bool) -> PHF<F> { self.phf(tf, false) }
+  fn with_uv(&self, tf: bool) -> PHF<F> { self.phf(tf, self.centered()) }
   /// polyhedron faces by Vec N of Vec P(polygon) indexed triangles
   fn phf(&self, tf: bool, c: bool) -> PHF<F> {
     self.ref_tri().iter().enumerate().map(|(fi, f)|
@@ -67,7 +69,11 @@ pub struct Polyhedron<F: Float> {
   /// vtx
   pub vtx: Vec<[F; 3]>,
   /// tri: [n][m] Vec n faces of Vec m indexed triangles
-  pub tri: Vec<Vec<[u8; 3]>>
+  pub tri: Vec<Vec<[u8; 3]>>,
+  /// uv: [n][m] Vec n faces of Vec m uvs
+  pub uv: Vec<Vec<[F; 2]>>,
+  /// center
+  pub center: bool
 }
 
 /// impl trait TUV for Polyhedron
@@ -81,4 +87,6 @@ impl<F: Float> TUV<F> for Polyhedron<F> {
   fn ref_vtx(&self) -> &Vec<[F; 3]> { &self.vtx }
   /// ref tri
   fn ref_tri(&self) -> &Vec<Vec<[u8; 3]>> { &self.tri }
+  /// centered
+  fn centered(&self) -> bool { self.center }
 }

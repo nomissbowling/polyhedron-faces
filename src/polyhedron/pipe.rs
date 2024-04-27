@@ -41,7 +41,7 @@ impl<F: Float + std::fmt::Debug> Tube<F> {
       vec![[2, 0, 1]]
     ];
     let edges = vec![];
-    Tube{ph: Polyhedron{vtx, tri}, edges}
+    Tube{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
   }
 }
 
@@ -81,6 +81,6 @@ impl<F: Float + std::fmt::Debug> HalfPipe<F> {
       vec![[2, 0, 1]]
     ];
     let edges = vec![];
-    HalfPipe{ph: Polyhedron{vtx, tri}, edges}
+    HalfPipe{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
   }
 }

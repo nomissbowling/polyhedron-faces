@@ -36,6 +36,6 @@ impl<F: Float + std::fmt::Debug> Pin<F> {
       vec![[2, 0, 1]]
     ];
     let edges = vec![];
-    Pin{ph: Polyhedron{vtx, tri}, edges}
+    Pin{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
   }
 }
