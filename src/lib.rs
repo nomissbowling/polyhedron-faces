@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.3.0")]
+#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.3.1")]
 //! polyhedron faces for Rust
 //!
 
@@ -6,6 +6,7 @@ pub mod polyhedron;
 pub use polyhedron::*;
 
 use num::Float;
+use qm::v::TVector;
 
 /// sum of vec [F; 2] without trait Sum
 /// when use += need trait Float + std::ops::AddAssign &lt; [F; 2] &gt;
@@ -106,7 +107,9 @@ pub fn calc_cg_f2_x<F: Float>(vs: &Vec<[F; 2]>) -> Vec<F> {
   vec![sol(&r, o, h) + h0, o] // TODO: y = o
 }
 
-/// calc cg f3
+/// calc cg f3 CAUTION not accurate
+/// (depends on density of vertices because no care of mass volume)
+/// - vs: length &ge; 3
 /// - p: precision for equality
 pub fn calc_cg_f3<F: Float>(vs: &Vec<[F; 3]>, p: F) -> Vec<F> {
   let mut vtmp = Vec::<[F; 3]>::new();
@@ -115,7 +118,46 @@ pub fn calc_cg_f3<F: Float>(vs: &Vec<[F; 3]>, p: F) -> Vec<F> {
     for v in vtmp.iter() { if prec_eq(v, p, &vs[i]) { found = true; break; } }
     if !found { vtmp.push(vs[i]); }
   }
-  avg_f3(&vtmp) // TODO: not accurate implemented
+  round_prec(&avg_f3(&vtmp), p, <F>::from(0).unwrap()) // not accurate
+}
+
+/// calc cg
+/// - idx: index of triangles on each faces
+/// - vtx: length &ge; 3
+/// - p: precision for equality
+/// when use += need trait Float + std::ops::AddAssign &lt; [F; 3] &gt;
+pub fn calc_cg<F: Float + std::fmt::Debug + std::iter::Sum>(
+  idx: &Vec<Vec<[u16; 3]>>, vtx: &Vec<[F; 3]>, p: F) -> Vec<F>{
+  let o = <F>::from(0).unwrap();
+  let mut m_total = o; // 6 * volume
+  let mut moi = [o, o, o];
+  for f in idx.iter() {
+    for t in f.iter() {
+      let vs = (0..t.len()).into_iter().map(|i|
+        vtx[t[i] as usize]).collect::<Vec<_>>();
+      let m = vs[2].dot(&vs[0].cross(&vs[1]));
+      m_total = m_total + m; // +=
+      let c = calc_cg_f3_o(&vs);
+      for j in 0..moi.len() { moi[j] = moi[j] + m * c[j]; } // +=
+    }
+  }
+  let cg = moi.into_iter().map(|p| p / m_total).collect::<Vec<_>>();
+  round_prec(&cg, p, <F>::from(0).unwrap())
+}
+
+/// calc cg f3 skip o
+/// - vs: length = 3 (It means: (o + vs[0] + vs[1] + vs[2]) / 4)
+pub fn calc_cg_f3_o<F: Float>(vs: &Vec<[F; 3]>) -> Vec<F> {
+  let n = <F>::from(4).unwrap(); // always 4
+  sum_f3(vs).iter().map(|&v| v / n).collect()
+}
+
+/// round precision
+pub fn round_prec<F: Float>(v: &[F], e: F, q: F) -> Vec<F> {
+  let o = <F>::from(0).unwrap();
+  v.iter().map(|&p| {
+    if (p - q).abs() >= e { p - q } else { o }
+  }).collect()
 }
 
 /// check equal with precision

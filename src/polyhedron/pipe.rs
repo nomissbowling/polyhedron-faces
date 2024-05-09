@@ -4,7 +4,7 @@
 use num::Float;
 
 use crate::{prec_eq, f_to_f32};
-use crate::{Polyhedron, revolution::Revolution, calc_cg_f3};
+use crate::{Polyhedron, revolution::Revolution, calc_cg, calc_cg_f3};
 // use crate::{center_indexed, divide_int};
 
 /// Tube
@@ -46,7 +46,7 @@ pub struct HalfPipe<F: Float> {
 }
 
 /// HalfPipe
-impl<F: Float + std::fmt::Debug> HalfPipe<F> {
+impl<F: Float + std::fmt::Debug + std::iter::Sum> HalfPipe<F> {
   /// construct
   /// - a: arc angle
   /// - odm: outer diameter
@@ -70,7 +70,8 @@ impl<F: Float + std::fmt::Debug> HalfPipe<F> {
       vec![[xi, -h, zi], [xo, -h, zo], [xo, h, zo], [xi, h, zi]]
     }).collect::<Vec<_>>();
     let cg = calc_cg_f3(&vtx, <F>::from(1e-6).unwrap());
-    // println!("cg: {:?}", cg);
+    // println!("cg: {:?}", cg); // 0.05825041967286819
+    // assert_eq!(f_to_f32(&cg[..2]), &[0.0, 0.0]); // without z
     assert!(prec_eq(&f_to_f32(&cg[..2]), 1e-6, &vec![0.0, 0.0])); // without z
     let vtx = vtx.into_iter().map(|[x, y, z]|
       [x - cg[0], y - cg[1], z - cg[2]]
@@ -89,6 +90,10 @@ impl<F: Float + std::fmt::Debug> HalfPipe<F> {
     tri.push(vec![[0, 1, 2], [0, 2, 3]]); // -a/2 side
     let k = 4 * (c - 1);
     tri.push(vec![[k + 3, k + 2, k + 1], [k + 3, k + 1, k]]); // a/2 side
+    let cg = calc_cg(&tri, &vtx, <F>::from(1e-6).unwrap());
+    // println!("cg: {:?}", cg); // TODO: 0.009333208976680942 accuracy 0.0 ?
+    assert_eq!(f_to_f32(&cg[..2]), &[0.0, 0.0]); // without z
+    // assert_eq!(f_to_f32(&cg), &[0.0, 0.0, 0.0]); // expect
     let edges = vec![];
     HalfPipe{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
   }

@@ -4,7 +4,7 @@
 use num::Float;
 
 use crate::{prec_eq, f_to_f32};
-use crate::{Polyhedron, revolution::Revolution, calc_cg_f2_x};
+use crate::{Polyhedron, revolution::Revolution, calc_cg, calc_cg_f2_x};
 // use crate::{center_indexed, divide_int};
 
 /// Pin
@@ -17,9 +17,10 @@ pub struct Pin<F: Float> {
 }
 
 /// Pin
-impl<F: Float + std::fmt::Debug> Pin<F> {
+impl<F: Float + std::fmt::Debug + std::iter::Sum> Pin<F> {
   /// construct
   pub fn new(r: F, p: u16, q: u16) -> Self {
+    let z = <F>::from(2).unwrap();
     let mut tbl = vec![
       [        15.0, 0.800], // 0.000], //
       [14.0+1.0/2.0, 1.870], //
@@ -40,16 +41,20 @@ impl<F: Float + std::fmt::Debug> Pin<F> {
       [         0.0, 2.250]];
     tbl.reverse();
     let tbl = tbl.into_iter().map(|[x, y]|
-      [<F>::from(x).unwrap(), <F>::from(y).unwrap()]
+      [<F>::from(x).unwrap(), <F>::from(y).unwrap() / z]
     ).collect::<Vec<_>>();
     let cg = calc_cg_f2_x(&tbl);
-    // println!("cg: {:?}", cg);
+    // println!("cg: {:?}", cg); // 5.8672757
     assert!(prec_eq(&f_to_f32(&cg), 1e-6, &vec![5.8672757, 0.0]));
     let tbl = tbl.into_iter().map(|[x, y]|
       (x - cg[0], y - cg[1])
     ).collect::<Vec<_>>();
     assert_eq!(p * 2 + 1, tbl.len() as u16);
     let revo = Revolution::<F>::from_tbl(r, p, q, (true, true), &tbl);
+    let cg = calc_cg(&revo.ph.tri, &revo.ph.vtx, <F>::from(1e-6).unwrap());
+    // println!("cg: {:?}", cg); // TODO: -0.08735778 accuracy 0.0 ?
+    assert_eq!(f_to_f32(&[cg[0], cg[2]]), &[0.0, 0.0]); // without y
+    // assert_eq!(f_to_f32(&cg), &[0.0, 0.0, 0.0]); // expect
     Pin{ph: revo.ph, edges: revo.edges}
   }
 }

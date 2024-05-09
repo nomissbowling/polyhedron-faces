@@ -28,7 +28,7 @@ impl<F: Float + std::fmt::Debug> Cylinder<F> {
         r * <F>::from(th.sin()).unwrap(),
         o,
         r * <F>::from(th.cos()).unwrap());
-      vec![[cx, -h, cz], [cx, h, cz]]
+      vec![[cx, -r * h, cz], [cx, r * h, cz]]
     }).collect::<Vec<_>>();
     vtx.push([o, -r * h, o]); // [c2] bottom
     vtx.push([o, r * h, o]); // [c2 + 1] top

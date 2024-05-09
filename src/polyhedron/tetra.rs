@@ -4,7 +4,7 @@
 use num::Float;
 
 use crate::{prec_eq, f_to_f32};
-use crate::{Polyhedron, calc_cg_f3};
+use crate::{Polyhedron, calc_cg, calc_cg_f3};
 
 /// Tetra
 #[derive(Debug)]
@@ -16,7 +16,7 @@ pub struct Tetra<F: Float> {
 }
 
 /// Tetra
-impl<F: Float + std::fmt::Debug> Tetra<F> {
+impl<F: Float + std::fmt::Debug + std::iter::Sum> Tetra<F> {
   /// construct
   pub fn new(r: F) -> Self {
     let r2 = 2.0f64.sqrt();
@@ -37,7 +37,7 @@ impl<F: Float + std::fmt::Debug> Tetra<F> {
         r * <F>::from(f).unwrap()
       ).collect::<Vec<_>>().try_into().unwrap()
     ).collect();
-    let cg = calc_cg_f3(&vtx, <F>::from(1e-6).unwrap());
+    let cg = calc_cg_f3(&vtx, <F>::from(1e-6).unwrap()); // not accurate
     // println!("cg: {:?}", cg);
     assert!(prec_eq(&f_to_f32(&cg), 1e-6, &vec![0.0, 0.0, 0.0]));
     let tri = vec![
@@ -46,6 +46,9 @@ impl<F: Float + std::fmt::Debug> Tetra<F> {
       vec![[3, 0, 2]],
       vec![[2, 0, 1]]
     ];
+    let cg = calc_cg(&tri, &vtx, <F>::from(1e-6).unwrap());
+    // println!("cg: {:?}", cg);
+    assert_eq!(f_to_f32(&cg), &[0.0, 0.0, 0.0]);
     let edges = vec![];
     Tetra{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
   }
