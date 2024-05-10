@@ -46,7 +46,7 @@ pub struct HalfPipe<F: Float> {
 }
 
 /// HalfPipe
-impl<F: Float + std::fmt::Debug + std::iter::Sum> HalfPipe<F> {
+impl<F: Float + std::fmt::Debug> HalfPipe<F> where F: std::iter::Sum {
   /// construct
   /// - a: arc angle
   /// - odm: outer diameter

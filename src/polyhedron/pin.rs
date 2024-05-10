@@ -17,7 +17,7 @@ pub struct Pin<F: Float> {
 }
 
 /// Pin
-impl<F: Float + std::fmt::Debug + std::iter::Sum> Pin<F> {
+impl<F: Float + std::fmt::Debug> Pin<F> where F: std::iter::Sum {
   /// construct
   pub fn new(r: F, p: u16, q: u16) -> Self {
     let z = <F>::from(2).unwrap();

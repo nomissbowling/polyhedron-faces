@@ -16,7 +16,7 @@ pub struct Tetra<F: Float> {
 }
 
 /// Tetra
-impl<F: Float + std::fmt::Debug + std::iter::Sum> Tetra<F> {
+impl<F: Float + std::fmt::Debug> Tetra<F> where F: std::iter::Sum {
   /// construct
   pub fn new(r: F) -> Self {
     let r2 = 2.0f64.sqrt();

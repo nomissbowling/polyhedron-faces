@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.3.1")]
+#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.3.2")]
 //! polyhedron faces for Rust
 //!
 
@@ -126,8 +126,9 @@ pub fn calc_cg_f3<F: Float>(vs: &Vec<[F; 3]>, p: F) -> Vec<F> {
 /// - vtx: length &ge; 3
 /// - p: precision for equality
 /// when use += need trait Float + std::ops::AddAssign &lt; [F; 3] &gt;
-pub fn calc_cg<F: Float + std::fmt::Debug + std::iter::Sum>(
-  idx: &Vec<Vec<[u16; 3]>>, vtx: &Vec<[F; 3]>, p: F) -> Vec<F>{
+pub fn calc_cg<F: Float + std::fmt::Debug>(
+  idx: &Vec<Vec<[u16; 3]>>, vtx: &Vec<[F; 3]>, p: F) -> Vec<F>
+  where F: std::iter::Sum {
   let o = <F>::from(0).unwrap();
   let mut m_total = o; // 6 * volume
   let mut moi = [o, o, o];
@@ -137,17 +138,18 @@ pub fn calc_cg<F: Float + std::fmt::Debug + std::iter::Sum>(
         vtx[t[i] as usize]).collect::<Vec<_>>();
       let m = vs[2].dot(&vs[0].cross(&vs[1]));
       m_total = m_total + m; // +=
-      let c = calc_cg_f3_o(&vs);
+      let c = calc_cg_o(&vs);
       for j in 0..moi.len() { moi[j] = moi[j] + m * c[j]; } // +=
     }
   }
   let cg = moi.into_iter().map(|p| p / m_total).collect::<Vec<_>>();
+  // println!("CG: {:?}", cg);
   round_prec(&cg, p, <F>::from(0).unwrap())
 }
 
-/// calc cg f3 skip o
+/// calc cg skip o
 /// - vs: length = 3 (It means: (o + vs[0] + vs[1] + vs[2]) / 4)
-pub fn calc_cg_f3_o<F: Float>(vs: &Vec<[F; 3]>) -> Vec<F> {
+pub fn calc_cg_o<F: Float>(vs: &Vec<[F; 3]>) -> Vec<F> {
   let n = <F>::from(4).unwrap(); // always 4
   sum_f3(vs).iter().map(|&v| v / n).collect()
 }
