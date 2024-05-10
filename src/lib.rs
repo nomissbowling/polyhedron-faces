@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.3.3")]
+#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.3.4")]
 //! polyhedron faces for Rust
 //!
 
@@ -152,6 +152,20 @@ pub fn calc_cg<F: Float + std::fmt::Debug>(
 pub fn calc_cg_o<F: Float>(vs: &Vec<[F; 3]>) -> Vec<F> {
   let n = <F>::from(4).unwrap(); // always 4
   sum_f3(vs).iter().map(|&v| v / n).collect()
+}
+
+/// adjust cg
+pub fn adjust_cg<F: Float + std::fmt::Debug>(
+  idx: &Vec<Vec<[u16; 3]>>, vtx: &mut Vec<[F; 3]>, p: F) -> Vec<F>
+  where F: std::iter::Sum {
+  let cg = calc_cg(idx, vtx, p);
+  // println!("cg: {:?}", cg);
+  for v in vtx.iter_mut() {
+    *v = [v[0] - cg[0], v[1] - cg[1], v[2] - cg[2]];
+  }
+  let cg0 = calc_cg(idx, vtx, p);
+  assert_eq!(f_to_f32(&cg0), &[0.0, 0.0, 0.0]); // expect
+  cg
 }
 
 /// round precision

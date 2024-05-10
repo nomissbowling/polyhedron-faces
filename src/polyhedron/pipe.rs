@@ -4,7 +4,7 @@
 use num::Float;
 
 use crate::{prec_eq, f_to_f32};
-use crate::{Polyhedron, revolution::Revolution, calc_cg, calc_cg_f3};
+use crate::{Polyhedron, revolution::Revolution, adjust_cg, calc_cg_f3};
 // use crate::{center_indexed, divide_int};
 
 /// Tube
@@ -60,7 +60,7 @@ impl<F: Float + std::fmt::Debug> HalfPipe<F> where F: std::iter::Sum {
     let h = l / z;
     let c = q * 4 + 1;
     let fa = a.to_f64().unwrap();
-    let vtx = (0..c).into_iter().flat_map(|cn| { // len = c4
+    let mut vtx = (0..c).into_iter().flat_map(|cn| { // len = c4
       let th = fa * cn as f64 / (c - 1) as f64 - fa / 2.0;
       let (cx, _cy, cz) = (
         <F>::from(th.sin()).unwrap(),
@@ -90,14 +90,10 @@ impl<F: Float + std::fmt::Debug> HalfPipe<F> where F: std::iter::Sum {
     let k = 4 * (c - 1);
     tri.push(vec![[k + 3, k + 2, k + 1], [k + 3, k + 1, k]]); // a/2 side
 
-    let cg = calc_cg(&tri, &vtx, <F>::from(1e-6).unwrap());
+    let p = <F>::from(1e-6).unwrap();
+    let cg = adjust_cg(&tri, &mut vtx, p);
     // println!("cg: {:?}", cg); // 0.06758362864954912 // TODO: check value
     assert_eq!(f_to_f32(&cg[..2]), &[0.0, 0.0]); // without z
-    let vtx = vtx.into_iter().map(|[x, y, z]|
-      [x - cg[0], y - cg[1], z - cg[2]]
-    ).collect::<Vec<_>>();
-    let cg = calc_cg(&tri, &vtx, <F>::from(1e-6).unwrap());
-    assert_eq!(f_to_f32(&cg), &[0.0, 0.0, 0.0]); // expect
 
     let edges = vec![];
     HalfPipe{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
