@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.3.2")]
+#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.3.3")]
 //! polyhedron faces for Rust
 //!
 
@@ -293,7 +293,8 @@ mod tests {
 
   #[test]
   fn test_halfpipe() {
-    let cmp = [0.0, 0.5, 0.2 - 0.05825041967286819]; // [0, l/2, idm/2 - cg]
+//    let cmp = [0.0, 0.5, 0.2 - 0.05825041967286819]; // [0, l/2, idm/2 - cg]
+    let cmp = [0.0, 0.5, 0.2 - 0.06758362864954912]; // [0, l/2, idm/2 - cg]
     let halfpipe32_e = HalfPipe::new(4.712388980, 0.5, 0.4, 1.0, 6); // 3pi/2
 /*
     let cmp = [0.0, 0.5, 0.2]; // [0, l/2, idm/2]
@@ -315,6 +316,7 @@ mod tests {
     assert_eq!(pin32.vtx.len(), 410); // (8*2+1) * (6*4) + 2 (bottom, top)
     let btm32 = pin32.vtx[(8*2+1) * (6*4)]; // bottom
     println!("{:?}", btm32);
-    assert!(prec_eq(&f_to_f32(&btm32), 1e-6, &[0.0, -5.8672757, 0.0]));
+//    assert!(prec_eq(&f_to_f32(&btm32), 1e-6, &[0.0, -5.8672757, 0.0]));
+    assert!(prec_eq(&f_to_f32(&btm32), 1e-6, &[0.0, -5.7799187, 0.0]));
   }
 }

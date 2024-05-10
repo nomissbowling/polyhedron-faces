@@ -43,18 +43,27 @@ impl<F: Float + std::fmt::Debug> Pin<F> where F: std::iter::Sum {
     let tbl = tbl.into_iter().map(|[x, y]|
       [<F>::from(x).unwrap(), <F>::from(y).unwrap() / z]
     ).collect::<Vec<_>>();
+
     let cg = calc_cg_f2_x(&tbl);
-    // println!("cg: {:?}", cg); // 5.8672757
+    // println!("cg: {:?}", cg); // 5.8672757 // not accurate
     assert!(prec_eq(&f_to_f32(&cg), 1e-6, &vec![5.8672757, 0.0]));
+
     let tbl = tbl.into_iter().map(|[x, y]|
-      (x - cg[0], y - cg[1])
+      (x, y)
     ).collect::<Vec<_>>();
     assert_eq!(p * 2 + 1, tbl.len() as u16);
-    let revo = Revolution::<F>::from_tbl(r, p, q, (true, true), &tbl);
+    let mut revo = Revolution::<F>::from_tbl(r, p, q, (true, true), &tbl);
+
     let cg = calc_cg(&revo.ph.tri, &revo.ph.vtx, <F>::from(1e-6).unwrap());
-    // println!("cg: {:?}", cg); // TODO: -0.08735778 accuracy 0.0 ?
-    assert_eq!(f_to_f32(&[cg[0], cg[2]]), &[0.0, 0.0]); // without y
-    // assert_eq!(f_to_f32(&cg), &[0.0, 0.0, 0.0]); // expect
+    // println!("cg: {:?}", cg); // 5.7799187 // TODO: check value
+    assert_eq!(f_to_f32(&cg), &[0.0, 5.7799187, 0.0]);
+    for v in (&mut revo.ph.vtx).iter_mut() {
+      *v = [v[0] - cg[0], v[1] - cg[1], v[2] - cg[2]];
+    }
+    // let cg = calc_cg(&revo.ph.tri, &revo.ph.vtx, <F>::from(1e-6).unwrap());
+    let cg = calc_cg(&revo.ph.tri, &revo.ph.vtx, <F>::from(1e-5).unwrap());
+    assert_eq!(f_to_f32(&cg), &[0.0, 0.0, 0.0]); // expect // TODO: prec 1e-5
+
     Pin{ph: revo.ph, edges: revo.edges}
   }
 }

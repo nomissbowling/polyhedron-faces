@@ -69,13 +69,12 @@ impl<F: Float + std::fmt::Debug> HalfPipe<F> where F: std::iter::Sum {
       let (xo, zo, xi, zi) = (ro * cx, ro * cz, ri * cx, ri * cz);
       vec![[xi, -h, zi], [xo, -h, zo], [xo, h, zo], [xi, h, zi]]
     }).collect::<Vec<_>>();
+
     let cg = calc_cg_f3(&vtx, <F>::from(1e-6).unwrap());
-    // println!("cg: {:?}", cg); // 0.05825041967286819
+    // println!("cg: {:?}", cg); // 0.05825041967286819 // not accurate
     // assert_eq!(f_to_f32(&cg[..2]), &[0.0, 0.0]); // without z
     assert!(prec_eq(&f_to_f32(&cg[..2]), 1e-6, &vec![0.0, 0.0])); // without z
-    let vtx = vtx.into_iter().map(|[x, y, z]|
-      [x - cg[0], y - cg[1], z - cg[2]]
-    ).collect::<Vec<_>>();
+
     let mut tri = (0..c-1).into_iter().flat_map(|cn| {
       let kn = 4 * (cn + 1);
       (0..4).into_iter().map(|k| { // bottom, outside, top, inside
@@ -90,10 +89,16 @@ impl<F: Float + std::fmt::Debug> HalfPipe<F> where F: std::iter::Sum {
     tri.push(vec![[0, 1, 2], [0, 2, 3]]); // -a/2 side
     let k = 4 * (c - 1);
     tri.push(vec![[k + 3, k + 2, k + 1], [k + 3, k + 1, k]]); // a/2 side
+
     let cg = calc_cg(&tri, &vtx, <F>::from(1e-6).unwrap());
-    // println!("cg: {:?}", cg); // TODO: 0.009333208976680942 accuracy 0.0 ?
+    // println!("cg: {:?}", cg); // 0.06758362864954912 // TODO: check value
     assert_eq!(f_to_f32(&cg[..2]), &[0.0, 0.0]); // without z
-    // assert_eq!(f_to_f32(&cg), &[0.0, 0.0, 0.0]); // expect
+    let vtx = vtx.into_iter().map(|[x, y, z]|
+      [x - cg[0], y - cg[1], z - cg[2]]
+    ).collect::<Vec<_>>();
+    let cg = calc_cg(&tri, &vtx, <F>::from(1e-6).unwrap());
+    assert_eq!(f_to_f32(&cg), &[0.0, 0.0, 0.0]); // expect
+
     let edges = vec![];
     HalfPipe{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
   }
