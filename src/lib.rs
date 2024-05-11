@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.3.4")]
+#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.3.5")]
 //! polyhedron faces for Rust
 //!
 
@@ -6,7 +6,9 @@ pub mod polyhedron;
 pub use polyhedron::*;
 
 use num::Float;
-use qm::v::TVector;
+// use qm::v::TVector;
+use qm::m::{TMatrix, m3::Matrix3};
+pub use qm::prec_eq;
 
 /// sum of vec [F; 2] without trait Sum
 /// when use += need trait Float + std::ops::AddAssign &lt; [F; 2] &gt;
@@ -136,9 +138,10 @@ pub fn calc_cg<F: Float + std::fmt::Debug>(
     for t in f.iter() {
       let vs = (0..t.len()).into_iter().map(|i|
         vtx[t[i] as usize]).collect::<Vec<_>>();
-      let m = vs[2].dot(&vs[0].cross(&vs[1]));
-      m_total = m_total + m; // +=
       let c = calc_cg_o(&vs);
+      // let m = vs[2].dot(&vs[0].cross(&vs[1])); // iter::Sum
+      let m = Matrix3::rowmajor3(vs).det(); // iter::Sum
+      m_total = m_total + m; // +=
       for j in 0..moi.len() { moi[j] = moi[j] + m * c[j]; } // +=
     }
   }
@@ -174,14 +177,6 @@ pub fn round_prec<F: Float>(v: &[F], e: F, q: F) -> Vec<F> {
   v.iter().map(|&p| {
     if (p - q).abs() >= e { p - q } else { o }
   }).collect()
-}
-
-/// check equal with precision
-pub fn prec_eq<F: Float>(s: &[F], e: F, d: &[F]) -> bool {
-  for i in 0..s.len() {
-    if (s[i] - d[i]).abs() >= e { return false; }
-  }
-  true
 }
 
 /// f_to_f32
@@ -331,6 +326,6 @@ mod tests {
     let btm32 = pin32.vtx[(8*2+1) * (6*4)]; // bottom
     println!("{:?}", btm32);
 //    assert!(prec_eq(&f_to_f32(&btm32), 1e-6, &[0.0, -5.8672757, 0.0]));
-    assert!(prec_eq(&f_to_f32(&btm32), 1e-6, &[0.0, -5.7799187, 0.0]));
+    assert!(prec_eq(&f_to_f32(&btm32), 1e-6, &[0.0, -5.779917, 0.0]));
   }
 }

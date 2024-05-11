@@ -47,15 +47,17 @@ impl<F: Float + std::fmt::Debug> Pin<F> where F: std::iter::Sum {
     let cg = calc_cg_f2_x(&tbl);
     // println!("cg: {:?}", cg); // 5.8672757 // not accurate
     assert!(prec_eq(&f_to_f32(&cg), 1e-6, &vec![5.8672757, 0.0]));
+    let tbl = tbl.into_iter().map(|[x, y]|
+      (x - cg[0], y) // skip cg[1]
+    ).collect::<Vec<_>>();
 
-    let tbl = tbl.into_iter().map(|[x, y]| (x, y)).collect::<Vec<_>>();
     assert_eq!(p * 2 + 1, tbl.len() as u16);
     let mut revo = Revolution::<F>::from_tbl(r, p, q, (true, true), &tbl);
 
 //    let p = <F>::from(1e-6).unwrap();
     let p = <F>::from(1e-5).unwrap(); // TODO: prec 1e-5
     let cg = adjust_cg(&revo.ph.tri, &mut revo.ph.vtx, p);
-    // println!("cg: {:?}", cg); // 5.7799187 // TODO: check value
+    // println!("cg: {:?}", cg); // -0.08735818 (5.779917) // TODO: check value
     assert_eq!(f_to_f32(&[cg[0], cg[2]]), &[0.0, 0.0]); // without y
 
     Pin{ph: revo.ph, edges: revo.edges}
