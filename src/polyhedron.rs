@@ -110,6 +110,8 @@ pub struct Polyhedron<F: Float> {
   pub tri: Vec<Vec<[u16; 3]>>,
   /// uv: [n][m] Vec n faces of Vec m uv triangles
   pub uv: Vec<Vec<[[F; 2]; 3]>>,
+  /// volume
+  pub vol: F,
   /// center
   pub center: bool
 }

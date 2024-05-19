@@ -3,8 +3,8 @@
 
 use num::Float;
 
-use crate::{prec_eq, f_to_f32};
-use crate::{Polyhedron, revolution::Revolution, adjust_cg, calc_cg_f3};
+use crate::{prec_eq, f_to_f32, adjust_cg_with_volume};
+use crate::{Polyhedron, revolution::Revolution, calc_cg_f3};
 // use crate::{center_indexed, divide_int};
 
 /// Tube
@@ -17,7 +17,7 @@ pub struct Tube<F: Float> {
 }
 
 /// Tube
-impl<F: Float + std::fmt::Debug> Tube<F> {
+impl<F: Float + std::fmt::Debug> Tube<F> where F: std::iter::Sum {
   /// construct
   /// - odm: outer diameter
   /// - idm: inner diameter
@@ -91,11 +91,11 @@ impl<F: Float + std::fmt::Debug> HalfPipe<F> where F: std::iter::Sum {
     tri.push(vec![[k + 3, k + 2, k + 1], [k + 3, k + 1, k]]); // a/2 side
 
     let p = <F>::from(1e-6).unwrap();
-    let cg = adjust_cg(&tri, &mut vtx, p);
+    let (cg, vol) = adjust_cg_with_volume(&tri, &mut vtx, p);
     // println!("cg: {:?}", cg); // 0.06758362864954912 // TODO: check value
     assert_eq!(f_to_f32(&cg[..2]), &[0.0, 0.0]); // without z
 
     let edges = vec![];
-    HalfPipe{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
+    HalfPipe{ph: Polyhedron{vtx, tri, uv: vec![], vol, center: false}, edges}
   }
 }

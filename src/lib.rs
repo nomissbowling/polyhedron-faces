@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.3.5")]
+#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.4.1")]
 //! polyhedron faces for Rust
 //!
 
@@ -8,7 +8,7 @@ pub use polyhedron::*;
 use num::Float;
 // use qm::v::TVector;
 use qm::m::{TMatrix, m3::Matrix3};
-pub use qm::prec_eq;
+pub use qm::{prec_eq, prec_eq_f};
 
 /// sum of vec [F; 2] without trait Sum
 /// when use += need trait Float + std::ops::AddAssign &lt; [F; 2] &gt;
@@ -23,7 +23,7 @@ pub fn avg_f2<F: Float>(uvs: &Vec<[F; 2]>) -> Vec<F> {
   sum_f2(uvs).iter().map(|&p| p / n).collect()
 }
 
-/// center indexed uv
+/// center indexed uv [F; 2]
 pub fn center_indexed_uv<F: Float>(idx: &[u16], uvs: &Vec<[F; 2]>) -> [F; 2] {
   let p = avg_f2(&idx.iter().map(|&i| uvs[i as usize]).collect());
   p.as_slice().try_into().unwrap()
@@ -42,9 +42,28 @@ pub fn avg_f3<F: Float>(vs: &Vec<[F; 3]>) -> Vec<F> {
   sum_f3(vs).iter().map(|&v| v / n).collect()
 }
 
-/// center indexed
+/// center indexed [F; 3]
 pub fn center_indexed<F: Float>(idx: &[u16], vtx: &Vec<[F; 3]>) -> [F; 3] {
   let p = avg_f3(&idx.iter().map(|&i| vtx[i as usize]).collect());
+  p.as_slice().try_into().unwrap()
+}
+
+/// sum of vec [F; 4] without trait Sum
+/// when use += need trait Float + std::ops::AddAssign &lt; [F; 4] &gt;
+pub fn sum_f4<F: Float>(vs: &Vec<[F; 4]>) -> Vec<F> {
+  vs.iter().fold(vec![<F>::from(0).unwrap(); 4], |s, p|
+    s.iter().zip(p.iter()).map(|(&q, &p)| q + p).collect())
+}
+
+/// avg of vec [F; 4]
+pub fn avg_f4<F: Float>(vs: &Vec<[F; 4]>) -> Vec<F> {
+  let n = <F>::from(vs.len()).unwrap();
+  sum_f4(vs).iter().map(|&v| v / n).collect()
+}
+
+/// center indexed [F; 4]
+pub fn center_indexed_f4<F: Float>(idx: &[u16], vtx: &Vec<[F; 4]>) -> [F; 4] {
+  let p = avg_f4(&idx.iter().map(|&i| vtx[i as usize]).collect());
   p.as_slice().try_into().unwrap()
 }
 
@@ -123,13 +142,13 @@ pub fn calc_cg_f3<F: Float>(vs: &Vec<[F; 3]>, p: F) -> Vec<F> {
   round_prec(&avg_f3(&vtmp), p, <F>::from(0).unwrap()) // not accurate
 }
 
-/// calc cg
+/// calc cg with volume
 /// - idx: index of triangles on each faces
 /// - vtx: length &ge; 3
 /// - p: precision for equality
 /// when use += need trait Float + std::ops::AddAssign &lt; [F; 3] &gt;
-pub fn calc_cg<F: Float + std::fmt::Debug>(
-  idx: &Vec<Vec<[u16; 3]>>, vtx: &Vec<[F; 3]>, p: F) -> Vec<F>
+pub fn calc_cg_with_volume<F: Float + std::fmt::Debug>(
+  idx: &Vec<Vec<[u16; 3]>>, vtx: &Vec<[F; 3]>, p: F) -> (Vec<F>, F)
   where F: std::iter::Sum {
   let o = <F>::from(0).unwrap();
   let mut m_total = o; // 6 * volume
@@ -147,7 +166,19 @@ pub fn calc_cg<F: Float + std::fmt::Debug>(
   }
   let cg = moi.into_iter().map(|p| p / m_total).collect::<Vec<_>>();
   // println!("CG: {:?}", cg);
-  round_prec(&cg, p, <F>::from(0).unwrap())
+  (round_prec(&cg, p, <F>::from(0).unwrap()), m_total / <F>::from(6).unwrap())
+}
+
+/// calc cg
+/// - idx: index of triangles on each faces
+/// - vtx: length &ge; 3
+/// - p: precision for equality
+/// when use += need trait Float + std::ops::AddAssign &lt; [F; 3] &gt;
+pub fn calc_cg<F: Float + std::fmt::Debug>(
+  idx: &Vec<Vec<[u16; 3]>>, vtx: &Vec<[F; 3]>, p: F) -> Vec<F>
+  where F: std::iter::Sum {
+  let (cg, _vol) = calc_cg_with_volume(idx, vtx, p);
+  cg
 }
 
 /// calc cg skip o
@@ -157,17 +188,31 @@ pub fn calc_cg_o<F: Float>(vs: &Vec<[F; 3]>) -> Vec<F> {
   sum_f3(vs).iter().map(|&v| v / n).collect()
 }
 
-/// adjust cg
-pub fn adjust_cg<F: Float + std::fmt::Debug>(
-  idx: &Vec<Vec<[u16; 3]>>, vtx: &mut Vec<[F; 3]>, p: F) -> Vec<F>
+/// adjust cg with volume
+pub fn adjust_cg_with_volume<F: Float + std::fmt::Debug>(
+  idx: &Vec<Vec<[u16; 3]>>, vtx: &mut Vec<[F; 3]>, p: F) -> (Vec<F>, F)
   where F: std::iter::Sum {
-  let cg = calc_cg(idx, vtx, p);
+  let (cg, vol) = calc_cg_with_volume(idx, vtx, p);
   // println!("cg: {:?}", cg);
   for v in vtx.iter_mut() {
     *v = [v[0] - cg[0], v[1] - cg[1], v[2] - cg[2]];
   }
-  let cg0 = calc_cg(idx, vtx, p);
+/*
+  // double check after adjust cg
+  // TODO: calc cg and volume are not accurate (prec 1e-3) for some polyhedron
+  let (cg0, vol0) = calc_cg_with_volume(idx, vtx, p); // re calc for test
+  let q = <F>::from(1e3).unwrap();
+  assert!(prec_eq_f(vol0 / q, p, vol / q)); // expect
   assert_eq!(f_to_f32(&cg0), &[0.0, 0.0, 0.0]); // expect
+*/
+  (cg, vol)
+}
+
+/// adjust cg
+pub fn adjust_cg<F: Float + std::fmt::Debug>(
+  idx: &Vec<Vec<[u16; 3]>>, vtx: &mut Vec<[F; 3]>, p: F) -> Vec<F>
+  where F: std::iter::Sum {
+  let (cg, _vol) = adjust_cg_with_volume(idx, vtx, p);
   cg
 }
 

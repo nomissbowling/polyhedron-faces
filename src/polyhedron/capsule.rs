@@ -3,6 +3,7 @@
 
 use num::Float;
 
+use crate::calc_cg_with_volume;
 use crate::Polyhedron;
 
 /// Capsule
@@ -15,7 +16,7 @@ pub struct Capsule<F: Float> {
 }
 
 /// Capsule
-impl<F: Float + std::fmt::Debug> Capsule<F> {
+impl<F: Float + std::fmt::Debug> Capsule<F> where F: std::iter::Sum {
   /// construct
   pub fn new(r: F, l: F, q: u16) -> Self {
     let h = l / <F>::from(2).unwrap();
@@ -45,7 +46,8 @@ impl<F: Float + std::fmt::Debug> Capsule<F> {
         vec![[k, kc, ksc], [k, ksc, ks]]
       }).collect::<Vec<_>>()
     }).collect::<Vec<_>>();
+    let (_cg, vol) = calc_cg_with_volume(&tri, &vtx, <F>::from(1e-6).unwrap());
     let edges = vec![];
-    Capsule{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
+    Capsule{ph: Polyhedron{vtx, tri, uv: vec![], vol, center: false}, edges}
   }
 }

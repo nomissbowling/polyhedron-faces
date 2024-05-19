@@ -4,7 +4,7 @@
 use num::Float;
 
 use crate::{prec_eq, f_to_f32};
-use crate::{Polyhedron, revolution::Revolution, adjust_cg, calc_cg_f2_x};
+use crate::{Polyhedron, revolution::Revolution, calc_cg, calc_cg_f2_x};
 // use crate::{center_indexed, divide_int};
 
 /// Pin
@@ -52,11 +52,11 @@ impl<F: Float + std::fmt::Debug> Pin<F> where F: std::iter::Sum {
     ).collect::<Vec<_>>();
 
     assert_eq!(p * 2 + 1, tbl.len() as u16);
-    let mut revo = Revolution::<F>::from_tbl(r, p, q, (true, true), &tbl);
+    let revo = Revolution::<F>::from_tbl(r, p, q, (true, true), &tbl);
 
 //    let p = <F>::from(1e-6).unwrap();
     let p = <F>::from(1e-5).unwrap(); // TODO: prec 1e-5
-    let cg = adjust_cg(&revo.ph.tri, &mut revo.ph.vtx, p);
+    let cg = calc_cg(&revo.ph.tri, &revo.ph.vtx, p);
     // println!("cg: {:?}", cg); // -0.08735818 (5.779917) // TODO: check value
     assert_eq!(f_to_f32(&[cg[0], cg[2]]), &[0.0, 0.0]); // without y
 

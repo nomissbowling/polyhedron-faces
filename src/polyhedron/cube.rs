@@ -3,6 +3,7 @@
 
 use num::Float;
 
+use crate::calc_cg_with_volume;
 use crate::{Polyhedron, center_indexed, center_indexed_uv};
 
 /// Cube
@@ -15,7 +16,7 @@ pub struct Cube<F: Float> {
 }
 
 /// Cube
-impl<F: Float + std::fmt::Debug> Cube<F> {
+impl<F: Float + std::fmt::Debug> Cube<F> where F: std::iter::Sum {
   /// construct
   pub fn new(r: F) -> Self {
     let vtx = vec![
@@ -30,7 +31,6 @@ impl<F: Float + std::fmt::Debug> Cube<F> {
       let k = f * 4;
       vec![[k, k + 1, k + 2], [k, k + 2, k + 3]]
     }).collect();
-    let edges = vec![];
     let uv = vec![
 /*
       [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]], // +X (1 0 0) right
@@ -56,7 +56,9 @@ impl<F: Float + std::fmt::Debug> Cube<F> {
         ).collect::<Vec<_>>().try_into().unwrap()
       }).collect()
     ).collect();
-    Cube{ph: Polyhedron{vtx, tri, uv, center: false}, edges}
+    let (_cg, vol) = calc_cg_with_volume(&tri, &vtx, <F>::from(1e-6).unwrap());
+    let edges = vec![];
+    Cube{ph: Polyhedron{vtx, tri, uv, vol, center: false}, edges}
   }
 }
 
@@ -70,7 +72,7 @@ pub struct CubeCenter<F: Float> {
 }
 
 /// CubeCenter
-impl<F: Float + std::fmt::Debug> CubeCenter<F> {
+impl<F: Float + std::fmt::Debug> CubeCenter<F> where F: std::iter::Sum {
   /// construct
   pub fn new(r: F) -> Self {
     let cube = Cube::<F>::new(r);
@@ -84,7 +86,6 @@ impl<F: Float + std::fmt::Debug> CubeCenter<F> {
       let k = f * 4;
       vec![[o, k, k + 1], [o, k + 1, k + 2], [o, k + 2, k + 3], [o, k + 3, k]]
     }).collect();
-    let edges = vec![];
     let uv = (0..6).into_iter().map(|f| {
       let uvr = &cube.ph.uv[f]; // [[0 1 2] [0 2 3]]
       let uvs = vec![uvr[0][0], uvr[0][1], uvr[0][2], uvr[1][2]]; // [0 1 2 3]
@@ -96,6 +97,8 @@ impl<F: Float + std::fmt::Debug> CubeCenter<F> {
         [o, uvs[2], uvs[3]],
         [o, uvs[3], uvs[0]]]
     }).collect();
-    CubeCenter{ph: Polyhedron{vtx, tri, uv, center: true}, edges}
+    let (_cg, vol) = calc_cg_with_volume(&tri, &vtx, <F>::from(1e-6).unwrap());
+    let edges = vec![];
+    CubeCenter{ph: Polyhedron{vtx, tri, uv, vol, center: true}, edges}
   }
 }

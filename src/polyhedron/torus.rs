@@ -5,6 +5,7 @@ use num::Float;
 use qm::q::{TQuaternion, Quaternion};
 use qm::v::{TVector, v4::Vector4, v3::Vector3};
 
+use crate::calc_cg_with_volume;
 use crate::{Polyhedron, revolution::Revolution};
 
 /// Torus
@@ -17,7 +18,7 @@ pub struct Torus<F: Float> {
 }
 
 /// Torus
-impl<F: Float + std::fmt::Debug + std::iter::Sum> Torus<F> {
+impl<F: Float + std::fmt::Debug> Torus<F> where F: std::iter::Sum {
   /// construct
   pub fn new(c: F, r: F, p: u16, q: u16) -> Self {
     let p = p * 4;
@@ -54,8 +55,9 @@ impl<F: Float + std::fmt::Debug + std::iter::Sum> Torus<F> {
         vec![[k, kq, kpq], [k, kpq, kp]]
       }).collect::<Vec<_>>()
     }).collect::<Vec<_>>();
+    let (_cg, vol) = calc_cg_with_volume(&tri, &vtx, <F>::from(1e-6).unwrap());
     let edges = vec![];
-    Torus{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
+    Torus{ph: Polyhedron{vtx, tri, uv: vec![], vol, center: false}, edges}
   }
 }
 
@@ -69,7 +71,7 @@ pub struct RTorus<F: Float> {
 }
 
 /// RTorus
-impl<F: Float + std::fmt::Debug + std::iter::Sum> RTorus<F> {
+impl<F: Float + std::fmt::Debug> RTorus<F> where F: std::iter::Sum {
   /// construct
   pub fn new(c: F, r: F, p: u16, q: u16) -> Self {
     let l = <F>::from(1).unwrap();
@@ -93,7 +95,7 @@ pub struct Ring<F: Float> {
 }
 
 /// Ring
-impl<F: Float + std::fmt::Debug + std::iter::Sum> Ring<F> {
+impl<F: Float + std::fmt::Debug> Ring<F> where F: std::iter::Sum {
   /// construct
   pub fn new(c: F, d: F, e: F, p: u16, q: u16) -> Self {
     let l = <F>::from(1).unwrap();

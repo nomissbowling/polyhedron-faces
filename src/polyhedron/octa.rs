@@ -3,6 +3,7 @@
 
 use num::Float;
 
+use crate::calc_cg_with_volume;
 use crate::{Polyhedron, cube::CubeCenter};
 
 /// Octa
@@ -15,7 +16,7 @@ pub struct Octa<F: Float> {
 }
 
 /// Octa
-impl<F: Float + std::fmt::Debug> Octa<F> {
+impl<F: Float + std::fmt::Debug> Octa<F> where F: std::iter::Sum {
   /// construct
   pub fn new(r: F) -> Self {
     let cubec = CubeCenter::<F>::new(r);
@@ -30,7 +31,8 @@ impl<F: Float + std::fmt::Debug> Octa<F> {
       vec![[1, 4, 2]],
       vec![[1, 3, 4]]
     ];
+    let (_cg, vol) = calc_cg_with_volume(&tri, &vtx, <F>::from(1e-6).unwrap());
     let edges = vec![];
-    Octa{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
+    Octa{ph: Polyhedron{vtx, tri, uv: vec![], vol, center: false}, edges}
   }
 }

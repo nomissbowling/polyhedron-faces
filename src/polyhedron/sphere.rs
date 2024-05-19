@@ -3,6 +3,7 @@
 
 use num::Float;
 
+use crate::calc_cg_with_volume;
 use crate::Polyhedron;
 
 /// RSphere
@@ -15,7 +16,7 @@ pub struct RSphere<F: Float> {
 }
 
 /// RSphere
-impl<F: Float + std::fmt::Debug> RSphere<F> {
+impl<F: Float + std::fmt::Debug> RSphere<F> where F: std::iter::Sum {
   /// construct
   pub fn new(r: F, q: u16) -> Self {
     let s = q * 2 + 1;
@@ -43,7 +44,8 @@ impl<F: Float + std::fmt::Debug> RSphere<F> {
         vec![[k, kc, ksc], [k, ksc, ks]]
       }).collect::<Vec<_>>()
     }).collect::<Vec<_>>();
+    let (_cg, vol) = calc_cg_with_volume(&tri, &vtx, <F>::from(1e-6).unwrap());
     let edges = vec![];
-    RSphere{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
+    RSphere{ph: Polyhedron{vtx, tri, uv: vec![], vol, center: false}, edges}
   }
 }

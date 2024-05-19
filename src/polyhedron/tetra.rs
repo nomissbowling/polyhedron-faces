@@ -3,8 +3,8 @@
 
 use num::Float;
 
-use crate::{prec_eq, f_to_f32};
-use crate::{Polyhedron, calc_cg, calc_cg_f3};
+use crate::{prec_eq, f_to_f32, calc_cg_with_volume};
+use crate::{Polyhedron, calc_cg_f3};
 
 /// Tetra
 #[derive(Debug)]
@@ -46,10 +46,10 @@ impl<F: Float + std::fmt::Debug> Tetra<F> where F: std::iter::Sum {
       vec![[3, 0, 2]],
       vec![[2, 0, 1]]
     ];
-    let cg = calc_cg(&tri, &vtx, <F>::from(1e-6).unwrap());
+    let (cg, vol) = calc_cg_with_volume(&tri, &vtx, <F>::from(1e-6).unwrap());
     // println!("cg: {:?}", cg);
     assert_eq!(f_to_f32(&cg), &[0.0, 0.0, 0.0]);
     let edges = vec![];
-    Tetra{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
+    Tetra{ph: Polyhedron{vtx, tri, uv: vec![], vol, center: false}, edges}
   }
 }

@@ -3,6 +3,7 @@
 
 use num::Float;
 
+use crate::{f_to_f32, adjust_cg_with_volume};
 use crate::Polyhedron;
 // use crate::{center_indexed, divide_int};
 
@@ -16,7 +17,7 @@ pub struct Revolution<F: Float> {
 }
 
 /// Revolution
-impl<F: Float + std::fmt::Debug> Revolution<F> {
+impl<F: Float + std::fmt::Debug> Revolution<F> where F: std::iter::Sum {
   /// construct
   /// - fo: (bottom, top) false: fixed end, true: open end
   pub fn new<Func>(r: F, p: u16, q: u16, fo: (bool, bool), mut f: Func) -> Self
@@ -55,8 +56,11 @@ impl<F: Float + std::fmt::Debug> Revolution<F> {
         v
       }).collect::<Vec<_>>()
     }).collect::<Vec<_>>();
+    let p = <F>::from(1e-6).unwrap();
+    let (cg, vol) = adjust_cg_with_volume(&tri, &mut vtx, p);
+    assert_eq!(f_to_f32(&[cg[0], cg[2]]), &[0.0, 0.0]); // without y
     let edges = vec![];
-    Revolution{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
+    Revolution{ph: Polyhedron{vtx, tri, uv: vec![], vol, center: false}, edges}
   }
   /// construct
   /// - fo: (bottom, top) false: fixed end, true: open end

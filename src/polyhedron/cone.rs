@@ -3,6 +3,7 @@
 
 use num::Float;
 
+use crate::calc_cg_with_volume;
 use crate::Polyhedron;
 
 /// Cone
@@ -15,7 +16,7 @@ pub struct Cone<F: Float> {
 }
 
 /// Cone
-impl<F: Float + std::fmt::Debug> Cone<F> {
+impl<F: Float + std::fmt::Debug> Cone<F> where F: std::iter::Sum {
   /// construct
   pub fn new(r: F, h: F, q: u16) -> Self {
     let o = <F>::from(0).unwrap();
@@ -32,7 +33,8 @@ impl<F: Float + std::fmt::Debug> Cone<F> {
       let ck = (cn + 1) % c;
       vec![vec![[c, ck, cn]], vec![[c + 1, cn, ck]]] // bottom, top
     }).collect::<Vec<_>>();
+    let (_cg, vol) = calc_cg_with_volume(&tri, &vtx, <F>::from(1e-6).unwrap());
     let edges = vec![];
-    Cone{ph: Polyhedron{vtx, tri, uv: vec![], center: false}, edges}
+    Cone{ph: Polyhedron{vtx, tri, uv: vec![], vol, center: false}, edges}
   }
 }
