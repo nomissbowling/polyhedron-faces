@@ -6,6 +6,64 @@ use num::Float;
 use crate::calc_cg_with_volume;
 use crate::{Polyhedron, center_indexed, center_indexed_uv};
 
+/// Cuboid
+#[derive(Debug)]
+pub struct Cuboid<F: Float> {
+  /// polyhedron tri: Vec 6 of Vec 2 indexed triangles
+  pub ph: Polyhedron<F>,
+  /// edges (duplex)
+  pub edges: Vec<(u16, [u16; 3])>
+}
+
+/// Cuboid
+impl<F: Float + std::fmt::Debug> Cuboid<F> where F: std::iter::Sum {
+  /// construct
+  pub fn new(lxyz: [F; 3]) -> Self {
+    let h = <F>::from(2).unwrap();
+    let (x, y, z) = (lxyz[0] / h, lxyz[1] / h, lxyz[2] / h);
+    let vtx = vec![
+      [x, -y, z], [x, -y, -z], [x, y, -z], [x, y, z], // +X (1 0 0) right
+      [-x, -y, z], [-x, y, z], [-x, y, -z], [-x, -y, -z], // -X (-1 0 0) left
+      [x, y, -z], [-x, y, -z], [-x, y, z], [x, y, z], // +Y (0 1 0) back
+      [x, -y, -z], [x, -y, z], [-x, -y, z], [-x, -y, -z], // -Y (0 -1 0) front
+      [-x, y, z], [-x, -y, z], [x, -y, z], [x, y, z], // +Z (0 0 1) top
+      [-x, y, -z], [x, y, -z], [x, -y, -z], [-x, -y, -z] // -Z (0 0 -1) bottom
+    ];
+    let tri = (0..6).into_iter().map(|f| {
+      let k = f * 4;
+      vec![[k, k + 1, k + 2], [k, k + 2, k + 3]]
+    }).collect();
+    let uv = vec![
+/*
+      [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]], // +X (1 0 0) right
+      [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]], // -X (-1 0 0) left
+      [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]], // +Y (0 1 0) back
+      [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]], // -Y (0 -1 0) front
+      [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]], // +Z (0 0 1) top
+      [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]] // -Z (0 0 -1) bottom
+*/
+      [[0.25, 0.50], [0.50, 0.50], [0.50, 0.25], [0.25, 0.25]], // 5137
+      [[0.25, 0.75], [0.25, 1.00], [0.50, 1.00], [0.50, 0.75]], // 4620
+      [[0.50, 0.25], [0.50, 0.00], [0.25, 0.00], [0.25, 0.25]], // 3267
+      [[0.50, 0.50], [0.25, 0.50], [0.25, 0.75], [0.50, 0.75]], // 1540
+      [[0.00, 0.25], [0.00, 0.50], [0.25, 0.50], [0.25, 0.25]], // 6457
+      [[0.75, 0.75], [0.75, 0.50], [0.50, 0.50], [0.50, 0.75]] // 2310
+    ].into_iter().map(|f|
+      (0..2).into_iter().map(|t| {
+        let i = [[0, 1, 2], [0, 2, 3]];
+        i[t].into_iter().map(|k|
+          f[k].iter().map(|&p|
+            <F>::from(p).unwrap()
+          ).collect::<Vec<_>>().try_into().unwrap()
+        ).collect::<Vec<_>>().try_into().unwrap()
+      }).collect()
+    ).collect();
+    let (_cg, vol) = calc_cg_with_volume(&tri, &vtx, <F>::from(1e-6).unwrap());
+    let edges = vec![];
+    Cuboid{ph: Polyhedron{vtx, tri, uv, vol, center: false}, edges}
+  }
+}
+
 /// Cube
 #[derive(Debug)]
 pub struct Cube<F: Float> {
