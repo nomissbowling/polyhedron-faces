@@ -13,6 +13,8 @@ pub mod pipe;
 pub mod pin;
 pub mod revolution;
 
+use crate::{calc_cg_with_volume, translate};
+
 use num::Float;
 
 /// FTVI
@@ -69,6 +71,12 @@ pub trait TUV<F: Float> {
   fn ref_tri(&self) -> &Vec<Vec<[u16; 3]>>;
   /// ref uv
   fn ref_uv(&self) -> &Vec<Vec<[[F; 2]; 3]>>;
+  /// ref vtx mut
+  fn ref_vtx_mut(&mut self) -> &mut Vec<[F; 3]>;
+  /// ref tri mut
+  fn ref_tri_mut(&mut self) -> &mut Vec<Vec<[u16; 3]>>;
+  /// ref uv mut
+  fn ref_uv_mut(&mut self) -> &mut Vec<Vec<[[F; 2]; 3]>>;
   /// centered
   fn centered(&self) -> bool;
   /// with_uv
@@ -98,6 +106,39 @@ pub trait TUV<F: Float> {
     false => self.get_uv_f(n, ti, vi, c, r, s, o) // texture each face
     };
     FTVI::<F>{fi, ti, vi, p, uv, idx: i}
+  }
+  /// calc cg with volume
+  fn calc_cg_with_volume(&self, p: F) -> (Vec<F>, F)
+    where F: std::fmt::Debug + std::iter::Sum {
+    calc_cg_with_volume(self.ref_tri(), self.ref_vtx(), p)
+  }
+  /// calc cg
+  fn calc_cg(&self, p: F) -> Vec<F>
+    where F: std::fmt::Debug + std::iter::Sum {
+//    calc_cg(self.ref_tri(), self.ref_vtx(), p) // OK
+    let (cg, _vol) = self.calc_cg_with_volume(p);
+    cg
+  }
+  /// adjust cg with volume
+  fn adjust_cg_with_volume(&mut self, p: F) -> (Vec<F>, F)
+    where F: std::fmt::Debug + std::iter::Sum {
+//  (can not borrow *self as mutable also borrowed as immutable)
+//    adjust_cg_with_volume(self.ref_tri(), self.ref_vtx_mut(), p) // borrow
+    let (cg, vol) = calc_cg_with_volume(self.ref_tri(), self.ref_vtx(), p);
+    translate(self.ref_vtx_mut(), &[-cg[0], -cg[1], -cg[2]]);
+    (cg, vol)
+  }
+  /// adjust cg
+  fn adjust_cg(&mut self, p: F) -> Vec<F>
+    where F: std::fmt::Debug + std::iter::Sum {
+//  (can not borrow *self as mutable also borrowed as immutable)
+//    adjust_cg(self.ref_tri(), self.ref_vtx_mut(), p) // borrow
+    let (cg, _vol) = self.adjust_cg_with_volume(p);
+    cg
+  }
+  /// translate
+  fn translate(&mut self, o: &[F]) where F: std::fmt::Debug {
+    translate(self.ref_vtx_mut(), o)
   }
 }
 
@@ -133,6 +174,12 @@ impl<F: Float> TUV<F> for Polyhedron<F> {
   fn ref_tri(&self) -> &Vec<Vec<[u16; 3]>> { &self.tri }
   /// ref uv
   fn ref_uv(&self) -> &Vec<Vec<[[F; 2]; 3]>> { &self.uv }
+  /// ref vtx mut
+  fn ref_vtx_mut(&mut self) -> &mut Vec<[F; 3]> { &mut self.vtx }
+  /// ref tri mut
+  fn ref_tri_mut(&mut self) -> &mut Vec<Vec<[u16; 3]>> { &mut self.tri }
+  /// ref uv mut
+  fn ref_uv_mut(&mut self) -> &mut Vec<Vec<[[F; 2]; 3]>> { &mut self.uv }
   /// centered
   fn centered(&self) -> bool { self.center }
 }

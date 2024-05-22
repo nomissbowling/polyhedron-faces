@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.4.2")]
+#![doc(html_root_url = "https://docs.rs/polyhedron-faces/0.4.3")]
 //! polyhedron faces for Rust
 //!
 
@@ -194,9 +194,7 @@ pub fn adjust_cg_with_volume<F: Float + std::fmt::Debug>(
   where F: std::iter::Sum {
   let (cg, vol) = calc_cg_with_volume(idx, vtx, p);
   // println!("cg: {:?}", cg);
-  for v in vtx.iter_mut() {
-    *v = [v[0] - cg[0], v[1] - cg[1], v[2] - cg[2]];
-  }
+  translate(vtx, &[-cg[0], -cg[1], -cg[2]]);
 /*
   // double check after adjust cg
   // TODO: calc cg and volume are not accurate (prec 1e-3) for some polyhedron
@@ -214,6 +212,13 @@ pub fn adjust_cg<F: Float + std::fmt::Debug>(
   where F: std::iter::Sum {
   let (cg, _vol) = adjust_cg_with_volume(idx, vtx, p);
   cg
+}
+
+/// translate
+pub fn translate<F: Float + std::fmt::Debug>(vtx: &mut Vec<[F; 3]>, o: &[F]) {
+  for v in vtx.iter_mut() {
+    *v = [v[0] + o[0], v[1] + o[1], v[2] + o[2]];
+  }
 }
 
 /// round precision
